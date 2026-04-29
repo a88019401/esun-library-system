@@ -1,10 +1,11 @@
 package com.esun.library.common;
 
 import com.esun.library.dto.ApiResponse;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-//手機格式錯、密碼太短、手機重複註冊，都會回傳比較乾淨的 JSON
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -23,6 +24,18 @@ public class GlobalExceptionHandler {
                 .findFirst()
                 .map(error -> error.getDefaultMessage())
                 .orElse("欄位格式錯誤");
+
+        return new ApiResponse(false, message);
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse handleDataAccessException(DataAccessException e) {
+        String message = e.getMostSpecificCause().getMessage();
+
+        if (message == null || message.isBlank()) {
+            message = "資料庫操作失敗";
+        }
 
         return new ApiResponse(false, message);
     }

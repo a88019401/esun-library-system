@@ -35,8 +35,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/books",
+                                //可以公開查詢
                                 "/api/auth/register",
+                                //可以公開註冊
                                 "/api/auth/login"
+                                //可以公開登入
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
