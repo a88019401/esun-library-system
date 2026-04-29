@@ -243,3 +243,15 @@ button:disabled {
   background: #9ca3af;
   cursor: not-allowed;
 }
+/*book detail*/
+.actions {
+  margin-top: 18px;
+}
+
+.return-button {
+  background: #b45309;
+}
+
+.return-button:hover {
+  background: #92400e;
+}
