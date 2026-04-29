@@ -193,3 +193,53 @@ h2 {
     align-items: flex-start;
   }
 }
+
+/*auth*/
+.auth-card {
+  max-width: 460px;
+  margin: 60px auto;
+}
+
+.form {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form label {
+  font-weight: 700;
+  color: #374151;
+}
+
+input {
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #1f4e79;
+}
+
+.user-name {
+  color: #1f4e79;
+  font-weight: 700;
+}
+
+.logout-button {
+  background: #6b7280;
+}
+
+.logout-button:hover {
+  background: #4b5563;
+}
+
+button:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
