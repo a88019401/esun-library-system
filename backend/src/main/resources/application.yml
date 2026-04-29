@@ -1,0 +1,22 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    import: optional:file:.env[.properties]
+
+  application:
+    name: esun-library-system
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jackson:
+    time-zone: Asia/Taipei
+
+logging:
+  level:
+    org.springframework.jdbc.core: INFO
