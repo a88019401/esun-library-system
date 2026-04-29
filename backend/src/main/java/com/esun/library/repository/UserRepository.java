@@ -1,8 +1,3 @@
-//這裡一樣遵守 Stored Routine：
-//SELECT * FROM fn_find_user_by_phone(?)
-//CALL sp_register_user(?, ?, ?)
-//沒有直接拼接 SQL，所以也比較能避免 SQL Injection。
-
 package com.esun.library.repository;
 
 import com.esun.library.entity.AppUser;
@@ -41,6 +36,13 @@ public class UserRepository {
                 phoneNumber,
                 passwordHash,
                 userName
+        );
+    }
+
+    public void updateLastLogin(Long userId) {
+        jdbcTemplate.update(
+                "CALL sp_update_last_login(?)",
+                userId
         );
     }
 }

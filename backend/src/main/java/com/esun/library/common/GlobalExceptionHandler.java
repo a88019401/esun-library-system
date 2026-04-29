@@ -4,7 +4,7 @@ import com.esun.library.dto.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-
+//手機格式錯、密碼太短、手機重複註冊，都會回傳比較乾淨的 JSON
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 

@@ -1,22 +1,30 @@
 package com.esun.library.service;
 
+import com.esun.library.dto.LoginRequest;
+import com.esun.library.dto.LoginResponse;
 import com.esun.library.dto.RegisterRequest;
 import com.esun.library.repository.UserRepository;
+import com.esun.library.security.JwtUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-//資料庫只會存雜湊後的密碼
+//1. 用手機號碼查使用者
+//2. 用 BCrypt 比對密碼
+//3. 密碼正確就產生 JWT Token
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     public AuthService(
             UserRepository userRepository,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            JwtUtil jwtUtil
     ) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
     public void register(RegisterRequest request) {
@@ -31,6 +39,34 @@ public class AuthService {
                 request.getPhoneNumber(),
                 passwordHash,
                 request.getUserName()
+        );
+    }
+
+    public LoginResponse login(LoginRequest request) {
+        var user = userRepository.findByPhone(request.getPhoneNumber())
+                .orElseThrow(() -> new IllegalArgumentException("帳號或密碼錯誤"));
+
+        boolean passwordMatched = passwordEncoder.matches(
+                request.getPassword(),
+                user.getPasswordHash()
+        );
+
+        if (!passwordMatched) {
+            throw new IllegalArgumentException("帳號或密碼錯誤");
+        }
+
+        userRepository.updateLastLogin(user.getUserId());
+
+        String token = jwtUtil.generateToken(
+                user.getUserId(),
+                user.getPhoneNumber(),
+                user.getUserName()
+        );
+
+        return new LoginResponse(
+                token,
+                "Bearer",
+                user.getUserName()
         );
     }
 }

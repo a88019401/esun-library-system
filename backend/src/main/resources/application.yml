@@ -17,6 +17,11 @@ spring:
   jackson:
     time-zone: Asia/Taipei
 
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS}
+
 logging:
   level:
     org.springframework.jdbc.core: INFO
