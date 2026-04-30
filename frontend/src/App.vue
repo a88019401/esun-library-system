@@ -48,5 +48,9 @@ onUnmounted(() => {
     <main class="main">
       <RouterView />
     </main>
+
+        <footer class="footer">
+      © 2026 Jimmy Chang（張祐豪） · ESUN Library Borrowing System
+    </footer>
   </div>
 </template>

@@ -251,3 +251,10 @@ button:disabled {
 .return-button:hover {
   background: #92400e;
 }
+.footer {
+  margin-top: 40px;
+  padding: 24px 16px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
