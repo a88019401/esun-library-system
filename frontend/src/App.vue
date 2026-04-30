@@ -31,9 +31,7 @@ onUnmounted(() => {
 <template>
   <div class="app">
     <header class="navbar">
-      <RouterLink class="brand" to="/books">
-        ESUN Library
-      </RouterLink>
+      <RouterLink class="brand" to="/books"> ESUN Library </RouterLink>
 
       <nav class="nav-links">
         <RouterLink to="/books">書籍列表</RouterLink>
@@ -41,13 +39,9 @@ onUnmounted(() => {
         <RouterLink v-if="!token" to="/login">登入</RouterLink>
         <RouterLink v-if="!token" to="/register">註冊</RouterLink>
 
-        <span v-if="token" class="user-name">
-          您好，{{ userName }}
-        </span>
+        <span v-if="token" class="user-name"> 您好，{{ userName }} </span>
 
-        <button v-if="token" class="logout-button" @click="logout">
-          登出
-        </button>
+        <button v-if="token" class="logout-button" @click="logout">登出</button>
       </nav>
     </header>
 

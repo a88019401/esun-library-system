@@ -1098,9 +1098,9 @@ PowerShell 測試時曾出現：
 Backend MVP：完成
 Frontend MVP：完成
 Full-stack Core Flow：完成
-Final Documentation / Build Test：待完成
+Final Documentation / Build Test：完成
 ```
 
 後端已滿足核心要求，包含 Spring Boot、RESTful API、註冊、登入驗證、借還書、Stored Procedure、Transaction、密碼雜湊、JWT 驗證、CORS 設定與三層式架構。
 
-前端也已完成 Vue 串接，可操作註冊、登入、查詢書籍、借書與還書。接下來主要工作為整理根目錄 README、執行最終 build 測試與補充專案交付說明。
+前端也已完成 Vue 串接，可操作註冊、登入、查詢書籍、借書與還書。

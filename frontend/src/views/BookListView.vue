@@ -21,10 +21,7 @@ const loadBooks = async () => {
     books.value = response.data
   } catch (error) {
     console.error('Load books failed:', error)
-    message.value =
-      error.response?.data?.message ||
-      error.message ||
-      '書籍資料載入失敗'
+    message.value = error.response?.data?.message || error.message || '書籍資料載入失敗'
   } finally {
     loading.value = false
   }
@@ -107,20 +104,14 @@ onMounted(loadBooks)
         <p class="subtitle">查看目前館藏與借閱狀態，登入後可借閱或歸還書籍。</p>
       </div>
 
-      <button class="secondary-button" @click="loadBooks">
-        重新整理
-      </button>
+      <button class="secondary-button" @click="loadBooks">重新整理</button>
     </div>
 
     <p v-if="loading" class="loading">載入中...</p>
     <p v-if="message" class="message">{{ message }}</p>
 
     <div class="book-grid">
-      <article
-        v-for="book in books"
-        :key="book.inventoryId"
-        class="book-card"
-      >
+      <article v-for="book in books" :key="book.inventoryId" class="book-card">
         <div class="book-top">
           <h2>{{ book.name }}</h2>
 
@@ -155,9 +146,7 @@ onMounted(loadBooks)
             {{ actionLoadingId === book.inventoryId ? '處理中...' : '還書' }}
           </button>
 
-          <button v-else disabled>
-            暫不可借
-          </button>
+          <button v-else disabled>暫不可借</button>
         </div>
       </article>
     </div>
