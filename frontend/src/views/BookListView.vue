@@ -138,12 +138,16 @@ onMounted(loadBooks)
           </button>
 
           <button
-            v-else-if="book.status === 'BORROWED'"
+            v-else-if="book.status === 'BORROWED' && book.borrowedByMe"
             class="return-button"
             :disabled="actionLoadingId === book.inventoryId"
             @click="returnBook(book.inventoryId)"
           >
             {{ actionLoadingId === book.inventoryId ? '處理中...' : '還書' }}
+          </button>
+
+          <button v-else-if="book.status === 'BORROWED' && !book.borrowedByMe" disabled>
+            已借出
           </button>
 
           <button v-else disabled>暫不可借</button>

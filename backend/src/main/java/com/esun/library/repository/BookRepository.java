@@ -15,17 +15,19 @@ public class BookRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    public List<BookResponse> listBooks() {
+    public List<BookResponse> findAll(Long userId) {
         return jdbcTemplate.query(
-                "SELECT * FROM fn_list_books()",
+                "SELECT * FROM fn_list_books(?)",
                 (rs, rowNum) -> new BookResponse(
                         rs.getLong("inventory_id"),
                         rs.getString("isbn"),
                         rs.getString("name"),
                         rs.getString("author"),
                         rs.getString("introduction"),
-                        rs.getString("status")
-                )
+                        rs.getString("status"),
+                        rs.getBoolean("borrowed_by_me")
+                ),
+                userId
         );
     }
 }

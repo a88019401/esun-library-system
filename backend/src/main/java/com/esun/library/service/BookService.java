@@ -15,7 +15,11 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
+    public List<BookResponse> listBooks(Long userId) {
+        return bookRepository.findAll(userId);
+    }
+
     public List<BookResponse> listBooks() {
-        return bookRepository.listBooks();
+        return listBooks(null);
     }
 }
