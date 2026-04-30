@@ -10,7 +10,7 @@
 Controller Layer  展示層 / REST API
 Service Layer     業務邏輯層 / Transaction 控制
 Repository Layer  資料存取層 / Stored Procedure 呼叫
-Security Layer    JWT 驗證與 Spring Security 設定
+Security Layer    JWT 驗證、Spring Security 設定與 CORS 設定
 Common Layer      共用回應與全域錯誤處理
 ```
 
@@ -23,29 +23,34 @@ Common Layer      共用回應與全域錯誤處理
 - 使用 JWT 驗證登入狀態。
 - 使用 BCrypt 儲存密碼雜湊，不保存明碼密碼。
 - 使用 `JdbcTemplate` 參數綁定，降低 SQL Injection 風險。
+- 使用 Spring Security 設定 API 權限與 CORS，允許 Vue 前端跨來源呼叫後端 API。
+- 與 Vue 前端完成整合，已可從瀏覽器完成註冊、登入、查詢書籍、借書與還書流程。
 
 ---
 
-## 2. 目前後端完成狀態
+## 2. 目前完成狀態
 
 | 功能 | 狀態 | 說明 |
 |---|---:|---|
 | Spring Boot 專案建立 | 完成 | 使用 Maven、Java 17、Spring Boot 3.5.14 |
 | Supabase PostgreSQL 連線 | 完成 | 已成功透過 HikariCP 建立 PostgreSQL 連線 |
-| DB Schema | 完成 | 已建立使用者、書籍、庫存、借閱紀錄等資料表 |
+| DB Schema | 完成 | 已建立使用者、書籍、庫存狀態、庫存、借閱紀錄等資料表 |
 | Stored Routine | 完成 | 使用 PostgreSQL Function / Procedure 存取資料 |
 | 查詢書籍 API | 完成 | `GET /api/books` |
 | 使用者註冊 API | 完成 | `POST /api/auth/register` |
 | BCrypt 密碼雜湊 | 完成 | 密碼未明碼儲存 |
 | 登入 API | 完成 | `POST /api/auth/login` |
 | JWT Token | 完成 | 登入成功後回傳 JWT |
+| JWT Filter | 完成 | 從 `Authorization: Bearer token` 解析登入者身份 |
 | 借書 API | 完成 | `POST /api/borrows/{inventoryId}` |
 | 還書 API | 完成 | `POST /api/borrows/{inventoryId}/return` |
 | JWT 保護借還書 | 完成 | 未帶 Token 呼叫借書 API 會被拒絕 |
 | Transaction | 完成 | 借還書 Service 層使用 `@Transactional` |
+| CORS 設定 | 完成 | 已允許 Vue 前端 `http://localhost:5173` 呼叫 Spring Boot 後端 API |
 | SQL Injection 防護 | 完成 | 使用 `JdbcTemplate` 參數綁定，不拼接 SQL |
-| XSS 防護基礎 | 部分完成 | 後端有欄位驗證；完整 XSS 防護需搭配 Vue 前端避免 `v-html` |
-| Vue 前端 | 尚未完成 | 下一階段實作 |
+| XSS 防護基礎 | 完成 | 後端有欄位驗證，前端使用 Vue 插值語法顯示資料，未使用 `v-html` |
+| Vue 前端串接 | 完成 | 已完成書籍列表、註冊、登入、JWT 儲存、借書與還書操作 |
+| Full-stack Core Flow | 完成 | 前端到後端再到資料庫的核心流程已打通 |
 
 ---
 
@@ -62,6 +67,8 @@ Common Layer      共用回應與全域錯誤處理
 | Password Hashing | BCrypt |
 | API Style | RESTful API |
 | Transaction | Spring `@Transactional` |
+| Frontend Integration | Vue 3 + Axios |
+| CORS | Spring Security CORS Configuration |
 | Environment Config | `.env` + `application.yml` |
 
 ---
@@ -123,6 +130,8 @@ backend/
 └── mvnw.cmd
 ```
 
+> 說明：`SecurityConfig.java` 同時負責 JWT 權限設定與 CORS 跨來源請求設定。
+
 ---
 
 ## 5. 各檔案功能說明
@@ -144,6 +153,8 @@ backend/
 | `AuthController.java` | `POST /api/auth/login` | 使用手機號碼與密碼登入 |
 | `BorrowController.java` | `POST /api/borrows/{inventoryId}` | 借閱指定庫存書籍 |
 | `BorrowController.java` | `POST /api/borrows/{inventoryId}/return` | 歸還指定庫存書籍 |
+
+Controller 層只負責接收 HTTP request、呼叫 Service、回傳 DTO，不直接處理 SQL。
 
 ---
 
@@ -185,7 +196,7 @@ jdbcTemplate.update(
 
 | 檔案 | 功能 |
 |---|---|
-| `SecurityConfig.java` | 設定哪些 API 公開，哪些 API 需要 JWT |
+| `SecurityConfig.java` | 設定公開 API、受保護 API、JWT Filter、CORS |
 | `JwtUtil.java` | 產生與解析 JWT Token |
 | `JwtAuthenticationFilter.java` | 從 `Authorization: Bearer token` 解析登入者身份 |
 
@@ -203,6 +214,15 @@ POST /api/auth/login
 POST /api/borrows/{inventoryId}
 POST /api/borrows/{inventoryId}/return
 ```
+
+`SecurityConfig.java` 也設定 CORS，允許 Vue 前端從以下來源呼叫後端 API：
+
+```text
+http://localhost:5173
+http://127.0.0.1:5173
+```
+
+此設定用於解決前端 `5173` 與後端 `8080` port 不同造成的跨來源請求問題。系統只開放必要來源，不是完全放行所有來源。
 
 ---
 
@@ -239,6 +259,8 @@ backend/DB/
 | `01_schema.sql` | 建立資料表、PK、FK、Index、Constraint |
 | `02_routines.sql` | 建立 Stored Function / Stored Procedure |
 | `03_seed.sql` | 建立測試資料 |
+
+資料庫設計採用正規化概念，將使用者、書籍主檔、庫存狀態、實體庫存與借閱紀錄拆成不同資料表，避免重複資料與更新異常。
 
 ---
 
@@ -540,7 +562,9 @@ logging:
 
 ```gitignore
 .env
+backend/.env
 target/
+backend/target/
 ```
 
 ---
@@ -568,7 +592,13 @@ Tomcat started on port 8080 (http)
 Started LibraryApplication
 ```
 
-本次測試中，後端已成功使用 Java 17.0.18 啟動，HikariCP 成功加入 PostgreSQL connection，Tomcat 也成功於 8080 port 啟動。
+後端成功啟動後，瀏覽器可直接測試：
+
+```text
+http://localhost:8080/api/books
+```
+
+若能看到書籍 JSON，代表後端與資料庫連線正常。
 
 ---
 
@@ -812,6 +842,63 @@ Invoke-RestMethod : 遠端伺服器傳回一個錯誤: (403) 禁止。
 
 ---
 
+### 12.7 前端書籍列表整合測試
+
+測試網址：
+
+```text
+http://localhost:5173/books
+```
+
+測試流程：
+
+```text
+1. 啟動 Spring Boot 後端於 http://localhost:8080
+2. 啟動 Vue 前端於 http://localhost:5173
+3. 開啟 /books
+4. 前端透過 Axios 呼叫 /api/books
+5. 後端回傳 Supabase PostgreSQL 書籍資料
+6. 前端成功渲染書籍列表
+```
+
+測試結果：
+
+```text
+Vue 前端成功呼叫 Spring Boot 後端 GET /api/books，並顯示 6 筆書籍資料。
+```
+
+結論：
+
+```text
+前後端書籍列表串接成功，CORS 設定正常。
+```
+
+---
+
+### 12.8 前端登入與借還書整合測試
+
+測試流程：
+
+```text
+1. 使用者於 Vue 前端登入
+2. 前端取得 JWT 並存入 localStorage
+3. 使用者於書籍列表點擊「借閱」
+4. Axios 自動帶入 Authorization: Bearer token
+5. 後端驗證 JWT 後呼叫 sp_borrow_book()
+6. 書籍狀態更新為 BORROWED
+7. 使用者點擊「還書」
+8. 後端呼叫 sp_return_book()
+9. 書籍狀態更新回 AVAILABLE
+```
+
+結論：
+
+```text
+Vue 前端已成功完成登入、JWT 帶入、借書、還書與狀態更新流程。
+```
+
+---
+
 ## 13. 安全性設計
 
 ### 13.1 密碼安全
@@ -862,13 +949,47 @@ jdbcTemplate.update(
 
 ### 13.4 XSS 防護
 
-目前後端已使用 DTO validation 檢查輸入格式。完整 XSS 防護會在 Vue 前端補強，原則如下：
+後端已使用 DTO validation 檢查輸入格式。前端顯示資料時使用 Vue 插值語法：
+
+```vue
+{{ book.name }}
+{{ book.author }}
+{{ book.introduction }}
+```
+
+目前前端未使用：
+
+```vue
+v-html
+```
+
+因此可降低 XSS 風險。
+
+---
+
+### 13.5 CORS 設定
+
+由於前端與後端分別執行於：
 
 ```text
-1. 使用 {{ value }} 顯示資料
-2. 避免使用 v-html 顯示使用者可控內容
-3. 必要時後端限制欄位長度與格式
+Frontend: http://localhost:5173
+Backend:  http://localhost:8080
 ```
+
+兩者 port 不同，瀏覽器會視為不同來源。因此後端於 `SecurityConfig.java` 中設定 CORS：
+
+```java
+.cors(Customizer.withDefaults())
+```
+
+並允許來源：
+
+```text
+http://localhost:5173
+http://127.0.0.1:5173
+```
+
+此設定讓 Vue 前端可以呼叫 Spring Boot API，同時仍保留 JWT 權限保護。
 
 ---
 
@@ -929,18 +1050,26 @@ JWT
 Transaction
 Stored Procedure
 DB 連線
+CORS
+前端整合
 ```
 
-### 15.2 待未完成項目
+---
+
+### 15.2 待完成或可優化項目
 
 ```text
-Vue 前端頁面
 README 總文件
 API 測試工具截圖或 Postman Collection
 正式錯誤碼設計
 單元測試 / 整合測試
 部署設定
+我的借閱紀錄頁
+只允許借閱者本人從前端看到還書按鈕
+管理員書籍維護功能
 ```
+
+---
 
 ### 15.3 PowerShell 中文亂碼
 
@@ -963,12 +1092,15 @@ PowerShell 測試時曾出現：
 
 ## 16. 後端完成度總結
 
-目前後端可以視為：
+目前專案完成度可視為：
 
 ```text
 Backend MVP：完成
-Frontend：尚未完成
-Full-stack Assignment：進入前端階段
+Frontend MVP：完成
+Full-stack Core Flow：完成
+Final Documentation / Build Test：待完成
 ```
 
-後端已滿足大部分核心後端要求，包含 Spring Boot、RESTful API、註冊、登入驗證、借還書、Stored Procedure、Transaction、密碼雜湊、JWT 驗證與三層式架構。接下來只要完成 Vue 前端與最終 README，就可以形成完整的全端作品。
+後端已滿足核心要求，包含 Spring Boot、RESTful API、註冊、登入驗證、借還書、Stored Procedure、Transaction、密碼雜湊、JWT 驗證、CORS 設定與三層式架構。
+
+前端也已完成 Vue 串接，可操作註冊、登入、查詢書籍、借書與還書。接下來主要工作為整理根目錄 README、執行最終 build 測試與補充專案交付說明。
