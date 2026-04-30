@@ -9,20 +9,42 @@ const books = ref([])
 const loading = ref(false)
 const actionLoadingId = ref(null)
 const message = ref('')
+const wakeupMessage = ref('')
 
 const isLoggedIn = computed(() => !!localStorage.getItem('token'))
 
 const loadBooks = async () => {
+  let wakeupTimer = null
+
   try {
     loading.value = true
     message.value = ''
+    wakeupMessage.value = '正在連線後端服務...'
+
+    wakeupTimer = setTimeout(() => {
+      if (loading.value) {
+        wakeupMessage.value =
+          'Render 免費方案可能正在喚醒後端服務，第一次載入約需 1～3 分鐘，請稍候...'
+      }
+    }, 8000)
 
     const response = await http.get('/books')
     books.value = response.data
+
+    wakeupMessage.value = ''
   } catch (error) {
     console.error('Load books failed:', error)
-    message.value = error.response?.data?.message || error.message || '書籍資料載入失敗'
+
+    message.value =
+      error.userMessage ||
+      error.response?.data?.message ||
+      error.message ||
+      '書籍資料載入失敗'
   } finally {
+    if (wakeupTimer) {
+      clearTimeout(wakeupTimer)
+    }
+
     loading.value = false
   }
 }
@@ -54,7 +76,10 @@ const borrowBook = async (inventoryId) => {
       return
     }
 
-    message.value = error.response?.data?.message || '借閱失敗'
+    message.value =
+      error.userMessage ||
+      error.response?.data?.message ||
+      '借閱失敗'
   } finally {
     actionLoadingId.value = null
   }
@@ -87,7 +112,10 @@ const returnBook = async (inventoryId) => {
       return
     }
 
-    message.value = error.response?.data?.message || '還書失敗'
+    message.value =
+      error.userMessage ||
+      error.response?.data?.message ||
+      '還書失敗'
   } finally {
     actionLoadingId.value = null
   }
@@ -107,7 +135,11 @@ onMounted(loadBooks)
       <button class="secondary-button" @click="loadBooks">重新整理</button>
     </div>
 
-    <p v-if="loading" class="loading">載入中...</p>
+    <div v-if="loading" class="loading-box">
+      <div class="spinner"></div>
+      <p>{{ wakeupMessage || '載入中...' }}</p>
+    </div>
+
     <p v-if="message" class="message">{{ message }}</p>
 
     <div class="book-grid">
